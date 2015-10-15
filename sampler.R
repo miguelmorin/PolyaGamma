@@ -7,3 +7,102 @@ single_sample_naive_polyagamma = function(z, max_k = 100){
   out = 1 / (2*pi**2) * sum(g / (0.25*(1:max_k - 1)**2 + z**2 / (4*pi**2)))
   return(out)
 }#end function
+
+
+#FUNCTION: cdf(x) of inverse Normal distribution with parameters mu and lambda
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
+pigauss = function(x,mu,lambda){
+  #check if x, mu and lambda are positive real numbers
+  if ((x<=0)|(mu<=0)|(lambda<=0)){
+    stop("Parameters in pigauss() are not of the correct type");
+  }#end if
+  
+  #assign variables
+  sqrt_lambda_over_x = sqrt(lambda/x);
+  x_over_mu = x/mu;
+  
+  #work out the cdf and return it
+  cdf = pnorm(sqrt_lambda_over_x*(x_over_mu-1));
+  cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
+  return (cdf);
+}#end pigauss
+
+
+#FUNCTION: Piecewise coefficients
+#PARAMETERS:
+#Parameter x, nth term, truncate at t
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
+a_n = function(x,n,t){
+  #check if n is positive integer, x is positive real, t is positive real
+  if ((x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
+    stop("Parameters in a_n are not of the correct type");
+  }#end if
+  
+  #set a for x<=t
+  if (x<=t){
+    a = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x);
+  }#end if
+  #else, set a for x>t
+  else{
+    a = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x);
+  }#end else
+  
+  #return a
+  return(a);
+}#end a_n
+
+#FUNCTION: Generate sample from inverse Normal with parameters (mu, 1) truncated with a max of t
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
+rinversen = function(mu,t){
+  #check if mu and t are positive real
+  if ((mu<=0)|(t<=0)){
+    stop("Parameters in rinversen are not of the correct type");
+  }#end if
+  
+  #x is the random sample
+  x = t;
+  
+  #while x is equal or more than t, sample
+  while(x>=t){
+    
+    #for large mu, use chi-squared approximation
+    if (mu>t){
+      repeat{
+        #sample exponential (full details in paper)
+        repeat{
+          E = rexp(2);
+          if (E[1]^2<=2*E[2]/t){
+            E = E[1];
+            break;
+          }#end if
+        }#end repeat
+        
+        #assign x, alpha
+        x = t/(1+t*E)^2;
+        alpha = exp(-0.5*x/mu^2);
+        
+        #accept if U(0,1) <= alpha
+        if (runif(1)<=alpha){
+          break;
+        }#end if
+        
+      }#end repeat
+    }#end if
+    
+    #else for small mu...
+    else{
+      y = (rnorm(1))^2;
+      x = mu+0.5*mu^2*y-0.5*mu*sqrt(4*mu*y+(mu*y)^2);
+      if (runif(1)>mu/(mu+x)){
+        x = mu*mu/x;
+      }#end if
+    }#else
+    
+  }#end while
+  
+  #return the sample
+  return(x);
+}#end rinverse
