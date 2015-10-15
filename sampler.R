@@ -2,9 +2,9 @@
 
 # Naive sampler for PG(1, z)
 # (based on the finite approximation of infinite sum)
-single_sample_naive_polyagamma = function(z, max_k = 100){
+rpolyagamma_naive = function(z, max_k = 100){
   g = rexp(max_k, 1)
-  out = 1 / (2*pi**2) * sum(g / (0.25*(1:max_k - 1)**2 + z**2 / (4*pi**2)))
+  out = 1 / (2*pi**2) * sum(g / ((1:max_k - 1/2)**2 + z**2 / (4*pi**2)))
   return(out)
 }#end function
 
@@ -12,10 +12,10 @@ single_sample_naive_polyagamma = function(z, max_k = 100){
 #FUNCTION: cdf(x) of inverse Normal distribution with parameters mu and lambda
 #AUTHOR: SHERMAN IP
 #DATE: 15/10/15
-pigauss = function(x,mu,lambda){
+pinversen = function(x,mu,lambda){
   #check if x, mu and lambda are positive real numbers
   if ((x<=0)|(mu<=0)|(lambda<=0)){
-    stop("Parameters in pigauss() are not of the correct type");
+    stop("Parameters in pinversen() are not of the correct type");
   }#end if
   
   #assign variables
@@ -26,7 +26,7 @@ pigauss = function(x,mu,lambda){
   cdf = pnorm(sqrt_lambda_over_x*(x_over_mu-1));
   cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
   return (cdf);
-}#end pigauss
+}#end pinversen
 
 
 #FUNCTION: Piecewise coefficients
@@ -106,3 +106,24 @@ rinversen = function(mu,t){
   #return the sample
   return(x);
 }#end rinverse
+
+#DEBUG FUNCTION: pdf(x) of inverse normal with parameter mu, lambda
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
+dinversen = function(x,mu,lambda){
+  return(sqrt(lambda/(2*pi*x^3))*exp(-lambda*(x-mu)^2/(2*mu^2*x)));
+}#end dinversen
+
+#DEBUG FUNCTION: pdf(x|x<t) where x~IG(mu,lambda)
+dtruncatedinversen = function(x,mu,lambda,t){
+  return(dinversen(x,mu,lambda)/pinversen(t,mu,lambda));
+}#end dtruncatedinversen
+
+#DEBUG FUNCTION: plot histogram and pdf of truncated IG(mu,1) at t
+testinversen = function(mu,t){
+  x_plot = seq(from=0.001,to=t,by=0.001);
+  f_plot = sapply(x_plot,dtruncatedinversen,mu=mu,lambda=1,t=t);
+  x = replicate(10000,rinversen(mu,t));
+  hist(x,freq=FALSE);
+  lines(x_plot,f_plot);
+}#end testinversen
