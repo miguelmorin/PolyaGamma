@@ -143,10 +143,23 @@ generate_mv_normal = function(w, y, X, b, B){
   return(beta)
 }
 
+# Check whether the user has provided arguments 
+# with matching dimensionalities
+check_dimensions = function(y, X, b, B){
+  if(!is.vector(y)) stop("y must be a vector")
+  if(!is.vector(b)) stop("b must be a vector")
+  if(!is.matrix(X)) stop("X must be a matrix")
+  if(!is.matrix(B)) stop("B must be a matrix")
+  if(length(y) != nrow(X)) stop("nrow(X) must equal length(y)")
+  if(length(b) != ncol(X)) stop("ncol(X) must equal length(b)")
+}
 
 # Gibbs two-step sampling procedure 
 # for parameter vector beta and the latent Polya-Gamma variables
 gibbs_sampler = function(y, X, b, B, n_iter=100){
+  # Check if everything is OK with dimensions
+  check_dimensions(y, X, b, B)
+  
   # number of parameters
   m = ncol(X)
   # number of data points
