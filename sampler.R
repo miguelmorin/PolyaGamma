@@ -129,3 +129,46 @@ testinversen = function(mu,t){
   hist(x,freq=FALSE);
   lines(x_plot,f_plot);
 }#end testinversen
+
+
+# Generate parameter vector beta from a multivariate normal
+# beta ~ N(m, V), see details in the paper
+generate_mv_normal = function(w, y, X, b, B){
+  Binv = solve(B)
+  temp = t(X) %*% diag(w) %*% X + Binv
+  V = solve(temp)
+  kappa = y - 0.5
+  m = V %*% (t(X) %*% kappa + Binv %*% b)
+  beta = as.numeric(rmvnorm(1, mean=m, sigma=V))
+  return(beta)
+}
+
+
+# Gibbs two-step sampling procedure 
+# for parameter vector beta and the latent Polya-Gamma variables
+gibbs_sampler = function(y, X, b, B, n_iter=100){
+  # number of parameters
+  m = ncol(X)
+  # number of data points
+  n = nrow(X)
+  # Starting values for beta; initialise w
+  beta = b
+  w = rep(NA, n)
+  
+  # Store the values of all betas and all w
+  beta_all = matrix(0, n_iter, m)
+  w_all = matrix(0, n_iter, n)
+  
+  for(k in 1:n_iter){
+    # draw elements of w from PG
+    for(i in 1:n){
+      psi = as.numeric(X[i, ] %*% beta)
+      w[i] = rpolyagamma_naive(psi)
+    }
+    # draw beta from a multivariate normal
+    beta = generate_mv_normal(w, y, X, b, B)
+    beta_all[k, ] = beta
+    w_all[k, ] = w
+  }
+  return(list("beta" = beta_all, "w" = w_all))
+}
