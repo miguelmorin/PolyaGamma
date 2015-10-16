@@ -158,7 +158,7 @@ rpolyagamma = function(a,z,t){
   
   #else a is 1
   else{
-    z = z/2;
+    z = abs(z)/2;
     mu = 1/z;
     K = pi*pi/8+z*z/2;
     
@@ -259,7 +259,7 @@ check_dimensions = function(y, X, b, B){
 
 # Gibbs two-step sampling procedure 
 # for parameter vector beta and the latent Polya-Gamma variables
-gibbs_sampler = function(y, X, b, B, n_iter=100){
+gibbs_sampler = function(y, X, b, B, n_iter=100, naive=FALSE, t=0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
   
@@ -279,7 +279,7 @@ gibbs_sampler = function(y, X, b, B, n_iter=100){
     # draw elements of w from PG
     for(i in 1:n){
       psi = as.numeric(X[i, ] %*% beta)
-      w[i] = rpolyagamma_naive(psi)
+      if(naive) w[i] = rpolyagamma_naive(psi) else w[i] = rpolyagamma(1, psi, t)
     }
     # draw beta from a multivariate normal
     beta = generate_mv_normal(w, y, X, b, B)
