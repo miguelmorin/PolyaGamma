@@ -44,14 +44,10 @@ a_n = function(x,n,t){
     stop("Parameters in a_n are not of the correct type");
   }#end if
   
-  #set a for x<=t
-  if (x<=t){
-    a = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x);
-  }#end if
-  #else, set a for x>t
-  else{
-    a = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x);
-  }#end else
+  #for a <= t
+  a = (x<=t)*(pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x));
+  #for a > t
+  a = a + (x>t)*(pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x));
   
   #return a
   return(a);
@@ -169,13 +165,18 @@ rpolyagamma = function(a,z,t){
     #calculate mixture coefficient
     p = pi/(2*K)*exp(-K*t);
     q = 2*exp(-z)*pinversen(t,mu,lambda=1);
+    r = p/(p+q);
+    #if the mixture coefficent is not finite, stop the program
+    if (!is.finite(r)){
+      stop("Mixture coefficients are not finite in rpolyagamma");
+    }#end if
     
     #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
       
       #probability p/(p+q), sample truncated exp
-      if(runif(1)<p/(p+q)){
+      if(runif(1)<r){
         x = t+rexp(1)/K;
       }#end if
       #else sample from inverse n
