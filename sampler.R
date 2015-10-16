@@ -26,7 +26,9 @@ pinversen = function(x,mu,lambda){
   
   #work out the cdf and return it
   cdf = pnorm(sqrt_lambda_over_x*(x_over_mu-1));
-  cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
+  if (cdf!=1){
+    cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
+  }#end if
   return (cdf);
 }#end pinversen
 
@@ -163,19 +165,27 @@ rpolyagamma = function(a,z,t){
     z = z/2;
     mu = 1/z;
     K = pi*pi/8+z*z/2;
+    
+    #calculate mixture coefficient
     p = pi/(2*K)*exp(-K*t);
     q = 2*exp(-z)*pinversen(t,mu,lambda=1);
+    r = p/(p+q);
+    #if the mixture coefficent is not finite, stop the program
+    if (!is.finite(r)){
+      stop("Mixture coefficients are not finite in rpolyagamma");
+    }#end if
     
+    #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
       
       #probability p/(p+q), sample truncated exp
-      if(runif(1)<p/(p+q)){
+      if(runif(1)<r){
         x = t+rexp(1)/K;
       }#end if
       #else sample from inverse n
       else{
-        x = rinversen(mu,t)
+        x = rinversen(mu,t);
       }#end else
       
       #get 0th coefficient
