@@ -139,6 +139,7 @@ testinversen = function(mu,t){
 #PARAMETERS: a is an integer, z and t are positive real numbers
 #AUTHOR: SHERMAN IP
 #DATE: 16/10/15
+#NOTES: Fails for high z
 rpolyagamma = function(a,z,t){
   #check if a is integer, t are positive real numbers
   if ((a!=round(a))|(a<=0)|(t<=0)){
@@ -202,9 +203,28 @@ rpolyagamma = function(a,z,t){
   }#end else
 }#end rpolyagamma
 
+#DEBUG FUNCTION: plot histogram and pdf of PG(1,z) with truncation t
+#AUTHOR: SHERMAN IP
+#DATE: 16/10/15
+testpolyagamma = function(z,t){
+  x = replicate(10000,rpolyagamma(1,z,t));
+  #Observeable: the pdf can't be evaluated for mu<0.0029
+  x_plot = seq(from=min(x),to=max(x),length=1000);
+  f_plot = sapply(x_plot,dpolyagamma,z=z,t=t);
+  hist(x,freq=FALSE);
+  lines(x_plot,f_plot);
+}#end testinversen
 
-dpolyagamma = function(){
-  
+#DEBUG FUNCTION: pdf of PG(1,z) at x and truncation point t
+#AUTHOR: SHERMAN IP
+#DATE: 16/10/15
+dpolyagamma = function(x,z,t){
+  pdf = 0;
+  #use the first 100 terms in infinite sum
+  for (i in 0:100){
+    pdf = pdf + (-1)^i*a_n(4*x,i,t);
+  }#end for
+  return(4*cosh(z/2)*exp(-z*z*4*x/8)*pdf);
 }#end dpolyagamma
 
 # Generate parameter vector beta from a multivariate normal
