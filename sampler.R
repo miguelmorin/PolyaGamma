@@ -135,6 +135,77 @@ testinversen = function(mu,t){
   lines(x_plot,f_plot);
 }#end testinversen
 
+#FUNCTION: Generate sample from PolyaGamma(a,z) with truncation t
+#PARAMETERS: a is an integer, z and t are positive real numbers
+#AUTHOR: SHERMAN IP
+#DATE: 16/10/15
+rpolyagamma = function(a,z,t){
+  #check if a is integer, t are positive real numbers
+  if ((a!=round(a))|(a<=0)|(t<=0)){
+    stop("Parameters in rpolyagamma are not of the correct type");
+  }#end if
+  
+  #if a is not 1, ie >1, then add together rpolyagamma sample a times
+  if (a!=1){
+    x= 0; #assign x
+    #a times
+    for (i in seq(from=1,to=a)){
+      #add sample from polyagamma(1,z)
+      x = x + rpolyagamma(1,z,t);
+    }#end for
+    #return x
+    return (x);
+  }#end if
+  
+  #else a is 1
+  else{
+    z = z/2;
+    mu = 1/z;
+    K = pi*pi/8+z*z/2;
+    p = pi/(2*K)*exp(-K*t);
+    q = 2*exp(-z)*pinversen(t,mu,lambda=1);
+    
+    repeat{
+      #sample x from mixture model
+      
+      #probability p/(p+q), sample truncated exp
+      if(runif(1)<p/(p+q)){
+        x = t+rexp(1)/K;
+      }#end if
+      #else sample from inverse n
+      else{
+        x = rinversen(mu,t)
+      }#end else
+      
+      #get 0th coefficient
+      S = a_n(x,0,t);
+      y = runif(1)*S;
+      n = 0;
+      repeat{
+        n = n+1;
+        #for odd n
+        if ((n%%2)==1){
+          S = S-a_n(x,n,t);
+          if (y<S){
+            return(x/4);
+          }#end if
+        }#end if
+        #for even n
+        else{
+          S = S+a_n(x,n,t);
+          if (y>S){
+            break;
+          }#end if
+        }#end else
+      }#end repeat
+    }#end repeat
+  }#end else
+}#end rpolyagamma
+
+
+dpolyagamma = function(){
+  
+}#end dpolyagamma
 
 # Generate parameter vector beta from a multivariate normal
 # beta ~ N(m, V), see details in the paper
