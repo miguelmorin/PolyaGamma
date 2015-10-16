@@ -97,7 +97,7 @@ rinversen = function(mu,t){
     #else for small mu...
     else{
       y = (rnorm(1))^2;
-      x = mu+0.5*mu^2*y-0.5*mu*sqrt(4*mu*y+(mu*y)^2);
+      x = mu+0.5*mu*mu*y-0.5*mu*sqrt(4*mu*y+(mu*y)^2);
       if (runif(1)>mu/(mu+x)){
         x = mu*mu/x;
       }#end if
@@ -117,15 +117,20 @@ dinversen = function(x,mu,lambda){
 }#end dinversen
 
 #DEBUG FUNCTION: pdf(x|x<t) where x~IG(mu,lambda)
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
 dtruncatedinversen = function(x,mu,lambda,t){
   return(dinversen(x,mu,lambda)/pinversen(t,mu,lambda));
 }#end dtruncatedinversen
 
 #DEBUG FUNCTION: plot histogram and pdf of truncated IG(mu,1) at t
+#AUTHOR: SHERMAN IP
+#DATE: 15/10/15
 testinversen = function(mu,t){
-  x_plot = seq(from=0.001,to=t,by=0.001);
-  f_plot = sapply(x_plot,dtruncatedinversen,mu=mu,lambda=1,t=t);
   x = replicate(10000,rinversen(mu,t));
+  #Observeable: the pdf can't be evaluated for mu<0.0029
+  x_plot = seq(from=min(x),to=max(x),length=100000);
+  f_plot = sapply(x_plot,dtruncatedinversen,mu=mu,lambda=1,t=t);
   hist(x,freq=FALSE);
   lines(x_plot,f_plot);
 }#end testinversen
