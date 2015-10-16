@@ -37,23 +37,13 @@ pinversen = function(x,mu,lambda){
 #AUTHOR: SHERMAN IP
 #DATE: 15/10/15
 a_n = function(x,n,t){
-  #check if n is positive integer, x is positive real, t is positive real
-  if ((x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
-    stop("Parameters in a_n are not of the correct type");
-  }#end if
-  
-  #set a for x<=t
-  if (x<=t){
-    a = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x);
-  }#end if
-  #else, set a for x>t
-  else{
-    a = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x);
-  }#end else
-  
-  #return a
-  return(a);
-}#end a_n
+  if (any(x<=0)|(t<=0)|(round(n)!=n)|(n<0)) stop("Parameters in a_n are not of the correct type")
+  a1 = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x)
+  a2 = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x)
+  out = ifelse(x<=t, a1, a2)
+  return(out)
+}
+
 
 #FUNCTION: Generate sample from inverse Normal with parameters (mu, 1) truncated with a max of t
 #AUTHOR: SHERMAN IP
