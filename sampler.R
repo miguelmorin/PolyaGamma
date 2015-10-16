@@ -26,7 +26,9 @@ pinversen = function(x,mu,lambda){
   
   #work out the cdf and return it
   cdf = pnorm(sqrt_lambda_over_x*(x_over_mu-1));
-  cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
+  if (cdf!=1){
+    cdf = cdf + exp(2*lambda/mu)*pnorm(-sqrt_lambda_over_x*(x_over_mu+1));
+  }#end if
   return (cdf);
 }#end pinversen
 
@@ -37,13 +39,23 @@ pinversen = function(x,mu,lambda){
 #AUTHOR: SHERMAN IP
 #DATE: 15/10/15
 a_n = function(x,n,t){
-  if (any(x<=0)|(t<=0)|(round(n)!=n)|(n<0)) stop("Parameters in a_n are not of the correct type")
-  a1 = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x)
-  a2 = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x)
-  out = ifelse(x<=t, a1, a2)
-  return(out)
-}
-
+  #check if n is positive integer, x is positive real, t is positive real
+  if (any(x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
+    stop("Parameters in a_n are not of the correct type");
+  }#end if
+  
+  #set a for x<=t
+  if (x<=t){
+    a = pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x);
+  }#end if
+  #else, set a for x>t
+  else{
+    a = pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x);
+  }#end else
+  
+  #return a
+  return(a);
+}#end a_n
 
 #FUNCTION: Generate sample from inverse Normal with parameters (mu, 1) truncated with a max of t
 #AUTHOR: SHERMAN IP
@@ -153,9 +165,12 @@ rpolyagamma = function(a,z,t){
     z = z/2;
     mu = 1/z;
     K = pi*pi/8+z*z/2;
+    
+    #calculate mixture coefficient
     p = pi/(2*K)*exp(-K*t);
     q = 2*exp(-z)*pinversen(t,mu,lambda=1);
     
+    #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
       
@@ -165,7 +180,7 @@ rpolyagamma = function(a,z,t){
       }#end if
       #else sample from inverse n
       else{
-        x = rinversen(mu,t)
+        x = rinversen(mu,t);
       }#end else
       
       #get 0th coefficient
