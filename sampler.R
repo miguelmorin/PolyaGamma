@@ -40,7 +40,7 @@ pinversen = function(x,mu,lambda){
 #DATE: 15/10/15
 a_n = function(x,n,t){
   #check if n is positive integer, x is positive real, t is positive real
-  if ((x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
+  if (any(x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
     stop("Parameters in a_n are not of the correct type");
   }#end if
   
@@ -169,18 +169,13 @@ rpolyagamma = function(a,z,t){
     #calculate mixture coefficient
     p = pi/(2*K)*exp(-K*t);
     q = 2*exp(-z)*pinversen(t,mu,lambda=1);
-    r = p/(p+q);
-    #if the mixture coefficent is not finite, stop the program
-    if (!is.finite(r)){
-      stop("Mixture coefficients are not finite in rpolyagamma");
-    }#end if
     
     #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
       
       #probability p/(p+q), sample truncated exp
-      if(runif(1)<r){
+      if(runif(1)<p/(p+q)){
         x = t+rexp(1)/K;
       }#end if
       #else sample from inverse n
