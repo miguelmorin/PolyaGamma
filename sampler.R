@@ -4,9 +4,9 @@ library(mvtnorm)
 
 # Naive sampler for PG(1, z)
 # (based on the finite approximation of infinite sum)
-rpolyagamma_naive = function(z, max_k = 100){
-  g = rexp(max_k, 1)
-  out = 1 / (2*pi**2) * sum(g / ((1:max_k - 1/2)**2 + z**2 / (4*pi**2)))
+rpolyagamma_naive = function(z, n_terms = 100){
+  g = rexp(n_terms, 1)
+  out = 1 / (2*pi**2) * sum(g / ((1:n_terms - 1/2)**2 + z**2 / (4*pi**2)))
   return(out)
 }#end function
 
@@ -259,7 +259,7 @@ check_dimensions = function(y, X, b, B){
 
 # Gibbs two-step sampling procedure 
 # for parameter vector beta and the latent Polya-Gamma variables
-gibbs_sampler = function(y, X, b, B, n_iter=100, naive=FALSE, t=0.64){
+gibbs_sampler = function(y, X, b, B, n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
   
@@ -279,7 +279,7 @@ gibbs_sampler = function(y, X, b, B, n_iter=100, naive=FALSE, t=0.64){
     # draw elements of w from PG
     for(i in 1:n){
       psi = as.numeric(X[i, ] %*% beta)
-      if(naive) w[i] = rpolyagamma_naive(psi) else w[i] = rpolyagamma(1, psi, t)
+      if(naive) w[i] = rpolyagamma_naive(psi, naive_n_terms) else w[i] = rpolyagamma(1, psi, t)
     }
     # draw beta from a multivariate normal
     beta = generate_mv_normal(w, y, X, b, B)
