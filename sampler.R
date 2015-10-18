@@ -286,5 +286,50 @@ gibbs_sampler = function(y, X, b, B, n_iter = 100, naive = FALSE, naive_n_terms 
     beta_all[k, ] = beta
     w_all[k, ] = w
   }
-  return(list("beta" = beta_all, "w" = w_all))
+  out = list("beta" = beta_all, "w" = w_all)
+  class(out) = "PG"
+  return(out)
+}
+
+# print method for PG object
+print.PG = function(obj){
+  beta = obj$beta
+  posterior_mean = round(colMeans(beta), 3)
+  posterior_sd = round(apply(beta, 2, sd), 3)
+  s = "
+  MCMC sample from the posterior distribution of beta.
+  Chain length: %d.
+  Number of parameters: %d. 
+  Posterior means: %s. 
+  Posterior standard deviations: %s.
+  "
+  cat(sprintf(s, 
+              nrow(beta), 
+              ncol(beta), 
+              paste(posterior_mean, collapse=", "), 
+              paste(posterior_sd, collapse=", ")))
+}
+
+# plot method for PG object
+plot.PG = function(obj){
+  X = obj$beta
+  
+  layout_mat = create_layout_matrix(ncol(X))
+  layout(layout_mat)
+  for(j in 1:ncol(X)){
+    x = X[, j]
+    # traceplot
+    plot(x, type="l"); abline(h = mean(x), lty=2, col="red")
+    # autocorrelation plot
+    acf(x, main="")
+  }
+  # restore layout to default
+  layout(1)
+}
+
+create_layout_matrix = function(i){
+  col1 = seq(1, 2*i, 2)
+  col2 = col1
+  col3 = col1 + 1
+  return(cbind(col1, col2, col3))
 }
