@@ -63,13 +63,13 @@ classifierExperiment = function(X,y){
   X_test = cbind(1,X_test);
   
   #get error of logistic regression
-  logistic_train_error = getTestError(y_train,as.vector(logisticRegression(X_train,beta_logistic)));
-  logistic_test_error = getTestError(y_test,as.vector(logisticRegression(X_test,beta_logistic)));
+  logistic_train_error = getTestError(y_train, predict(X_train, beta_logistic));
+  logistic_test_error = getTestError(y_test, predict(X_test, beta_logistic));
   
   #get range of lambda to investigate
   lambda_exp_vector = seq(3,10);
   
-  n_error = 20; #number of times to repeat the experiment
+  n_error = 5; #number of times to repeat the experiment
   n_samples = 100; #number of betas to sample from the chain
   n_chain = 150; #the length of the chain
   
@@ -84,12 +84,12 @@ classifierExperiment = function(X,y){
     #repeat n_error times
     for (j in 1:n_error){
       #get a chain
-      chain = gibbs_sampler(y_train, X_train, b = replicate(p,0), B = diag(replicate(p,lambda)),n_chain)$beta;
+      chain = gibbs_sampler(y_train, X_train, b = replicate(p,0), B = diag(replicate(p,lambda)),n_chain, naive=TRUE)$beta;
       #take the last part of the chain
       beta_posterior = chain[(n_chain-n_samples+1):n_chain,];
       #average the logistic regression, round it and use it for prediction
-      train_error[j,i] = getTestError(y_train,(colMeans(logisticRegression(X_train,beta_posterior))));
-      test_error[j,i] = getTestError(y_test,(colMeans(logisticRegression(X_test,beta_posterior))));
+      train_error[j,i] = getTestError(y_train, predict(X_train, beta_posterior));
+      test_error[j,i] = getTestError(y_test, predict(X_test, beta_posterior));
     }#end for
   }#end for
   
@@ -134,3 +134,12 @@ logisticRegression = function(X,beta_design){
   p = 1/(1+exp(-eta));
   return(p);
 }#end logisticRegression
+
+# Predict the y value for all data points, 
+# given a design matrix X and the sample from posterior of betas
+predict = function(X, beta){
+  samples = logisticRegression(X, beta)
+  posterior_mean = colMeans(samples)
+  ypred = round(posterior_mean)
+  return(ypred)
+}
