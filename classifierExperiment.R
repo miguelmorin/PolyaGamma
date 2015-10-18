@@ -33,6 +33,12 @@ classifierExperiment = function(){
   X_test = X[test_pointer,];
   y_test = y[test_pointer];
   
+  #normalise the data
+  x_center = colMeans(X_train);
+  x_scale = apply(X_train,2,sd);
+  X_train = scale(X_train,x_center,x_scale);
+  X_test = scale(X_test,x_center,x_scale);
+  
   #fit using logistic model
   model = glm(y_train~X_train,family=binomial(link="logit"));
   beta_logistic = model$coefficients;
