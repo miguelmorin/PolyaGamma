@@ -237,7 +237,7 @@ dpolyagamma = function(x,z,t){
 # beta ~ N(m, V), see details in the paper
 generate_mv_normal = function(w, y, X, b, B){
   Binv = solve(B)
-  temp = t(X) %*% diag(w) %*% X + Binv
+  temp = t(X) %*% (w * X) + Binv
   kappa = y - 0.5
   V = chol2inv(chol(temp))
   m = V %*% as.vector(t(X) %*% kappa + Binv %*% b)
