@@ -1,11 +1,10 @@
 #AUTHOR: SHERMAN IP
 #DATE: 16/10/15
+#DATE: 18/10/15
 
-classifierExperiment = function(){
-  #set random seed
-  set.seed(92486);
-  
-  #read data
+#SAHEART
+#read data
+saheart = function(){
   data = read.table("SAheart.data",sep=",",head=T,row.names=1);
   #get the response vector
   y = data$chd;
@@ -13,6 +12,22 @@ classifierExperiment = function(){
   data = data[c("sbp","tobacco","ldl","famhist","alcohol","age")];
   data$famhist = (data$famhist=="Present");
   X = as.matrix(data);
+  classifierExperiment(X,y);
+}
+
+#TRANSFUSION
+transfusion = function(){
+  data = read.table("transfusion.data",sep=",",head=T);
+  y = data$response;
+  X = as.matrix(data[,-5]);
+  classifierExperiment(X,y);
+}
+
+
+#EXPERIMENT FUNCTION
+classifierExperiment = function(X,y){
+  #set random seed
+  set.seed(92486);
   
   #get the sample size and the number of features
   n_total = length(y);
