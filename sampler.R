@@ -134,7 +134,7 @@ testinversen = function(mu,t){
 #FUNCTION: Generate sample from PolyaGamma(a,z) with truncation t
 #PARAMETERS: a is an integer, z and t are positive real numbers
 #AUTHOR: SHERMAN IP
-#DATE: 16/10/15
+#DATE: 16/10/15 - 19/10/15
 #NOTES: Fails for high z
 rpolyagamma = function(a,z,t){
   #check if a is integer, t are positive real numbers
@@ -169,6 +169,9 @@ rpolyagamma = function(a,z,t){
       stop("Mixture coefficients are not finite in rpolyagamma");
     }#end if
     
+    #put in global REJECTION count
+    REJECTION <<- 0;
+    
     #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
@@ -191,6 +194,7 @@ rpolyagamma = function(a,z,t){
         #for odd n
         if ((n%%2)==1){
           S = S-a_n(x,n,t);
+          #if y is smaller than S, accept and return it
           if (y<S){
             return(x/4);
           }#end if
@@ -198,7 +202,9 @@ rpolyagamma = function(a,z,t){
         #for even n
         else{
           S = S+a_n(x,n,t);
+          #if y is bigger than S, reject it and increase the global counter
           if (y>S){
+            REJECTION <<- REJECTION + 1;
             break;
           }#end if
         }#end else
@@ -230,6 +236,29 @@ dpolyagamma = function(x,z,t){
   }#end for
   return(4*cosh(z/2)*exp(-z*z*4*x/8)*pdf);
 }#end dpolyagamma
+
+#EXPERIMENT FUNCTION: investegate the rejection rate of the polyagamma sampler
+#PARAMETERS: sample PG(1,10^b_exp_array) n times
+rejectionPolyaGamma = function(b_exp_array,n){
+  #check if b is a vector and n is a positive integer
+  if ( (!is.vector(b_exp_array)) | (n!=round(n)) | (n<=0) ){
+    stop("Paramters in rejectionPolyaGamma are not of the correct type");
+  }
+  rejection_matrix = matrix(0,nrow=n,ncol=length(b_exp_array));
+  for (j in seq_len(length(b_exp_array))){
+    b = 10^(b_exp_array[j]);
+    for (i in 1:n){
+      rpolyagamma(1,b,0.64);
+      rejection_matrix[i,j] = REJECTION;
+    }#end for
+  }#end for
+  
+  #plot the training and testing error
+  boxplot(rejection_matrix,names=paste("10E",sapply(b_exp_array,toString),sep=""),xlab="b",ylab="Number of rejection");
+  mean = colMeans(rejection_matrix);
+  errbar(b_exp_array,mean,apply(rejection_matrix,2,min),apply(rejection_matrix,2,max));
+  
+}#end rejectionPolyaGamma
 
 # Generate parameter vector beta from a multivariate normal
 # beta ~ N(m, V), see details in the paper
