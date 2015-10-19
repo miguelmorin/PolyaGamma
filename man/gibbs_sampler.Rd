@@ -14,7 +14,19 @@ gibbs_sampler(y, X, lambda = 1e-04, b = rep(0, ncol(X)), B = lambda *
 
 \item{X}{design matrix of covariates}
 
-\item{lambda}{}
+\item{lambda}{The diagonal element of the precision matrix of the prior distribution (see also parameter B)}
+
+\item{b}{The prior mean of the prior distribution. Defaults to a vector of zeros.}
+
+\item{B}{The prior precision of the prior distribution. Defaults to lambda * identity.}
+
+\item{n_iter}{The total number of iterations in the MCMC chain}
+
+\item{naive}{Should the naive approximation be used to generate the Polya-Gamma distribution}
+
+\item{naive_n_terms}{If the naive approximation is used, then this specifies number of terms in the finite sum.}
+
+\item{t}{The parameter in the accept-reject algorithm for sampling from Polya-Gamma distribution (see paper for details).}
 }
 \value{
 list containing the MCMC samples from the posterior distribution of beta
@@ -22,5 +34,10 @@ list containing the MCMC samples from the posterior distribution of beta
 \description{
 Gibbs two-step sampling procedure
 for parameter vector beta and the latent Polya-Gamma variables
+}
+\examples{
+data = generate_from_simple_logistic_model(n=100)
+obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter=100)
+plot(obj)
 }
 
