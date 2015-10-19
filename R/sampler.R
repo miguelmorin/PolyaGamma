@@ -299,10 +299,21 @@ check_dimensions = function(y, X, b, B){
 #'
 #' @param y binary vector of observations
 #' @param X design matrix of covariates
-#' @param lambda
+#' @param lambda The diagonal element of the precision matrix of the prior distribution (see also parameter B)
+#' @param b The prior mean of the prior distribution. Defaults to a vector of zeros.
+#' @param B The prior precision of the prior distribution. Defaults to lambda * identity.
+#' @param n_iter The total number of iterations in the MCMC chain
+#' @param naive Should the naive approximation be used to generate the Polya-Gamma distribution
+#' @param naive_n_terms If the naive approximation is used, then this specifies number of terms in the finite sum.
+#' @param t The parameter in the accept-reject algorithm for sampling from Polya-Gamma distribution (see paper for details).
 #'
 #' @return list containing the MCMC samples from the posterior distribution of beta
+#' @examples
+#' data = generate_from_simple_logistic_model(n=100)
+#' obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter=100)
+#' plot(obj)
 #' @export gibbs_sampler
+#'
 gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
