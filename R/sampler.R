@@ -17,11 +17,11 @@ pinversen = function(x,mu,lambda){
   if ((x<=0)|(mu<=0)|(lambda<=0)){
     stop("Parameters in pinversen() are not of the correct type");
   }#end if
-  
+
   #assign variables
   sqrt_lambda_over_x = sqrt(lambda/x);
   x_over_mu = x/mu;
-  
+
   #work out the cdf and return it
   cdf = pnorm(sqrt_lambda_over_x*(x_over_mu-1));
   if (cdf!=1){
@@ -41,12 +41,12 @@ a_n = function(x,n,t){
   if (any(x<=0)|(t<=0)|(round(n)!=n)|(n<0)){
     stop("Parameters in a_n are not of the correct type");
   }#end if
-  
+
   #for a <= t
   a = (x<=t)*(pi*(n+0.5)*(sqrt(2/(pi*x)))^3*exp(-2*(n+0.5)^2/x));
   #for a > t
   a = a + (x>t)*(pi*(n+0.5)*exp(-0.5*(n+0.5)^2*pi^2*x));
-  
+
   #return a
   return(a);
 }#end a_n
@@ -59,13 +59,13 @@ rinversen = function(mu,t){
   if ((mu<=0)|(t<=0)){
     stop("Parameters in rinversen are not of the correct type");
   }#end if
-  
+
   #x is the random sample
   x = t;
-  
+
   #while x is equal or more than t, sample
   while(x>=t){
-    
+
     #for large mu, use chi-squared approximation
     if (mu>t){
       repeat{
@@ -77,19 +77,19 @@ rinversen = function(mu,t){
             break;
           }#end if
         }#end repeat
-        
+
         #assign x, alpha
         x = t/(1+t*E)^2;
         alpha = exp(-0.5*x/mu^2);
-        
+
         #accept if U(0,1) <= alpha
         if (runif(1)<=alpha){
           break;
         }#end if
-        
+
       }#end repeat
     }#end if
-    
+
     #else for small mu...
     else{
       y = (rnorm(1))^2;
@@ -98,9 +98,9 @@ rinversen = function(mu,t){
         x = mu*mu/x;
       }#end if
     }#else
-    
+
   }#end while
-  
+
   #return the sample
   return(x);
 }#end rinverse
@@ -141,7 +141,7 @@ rpolyagamma = function(a,z,t){
   if ((a!=round(a))|(a<=0)|(t<=0)){
     stop("Parameters in rpolyagamma are not of the correct type");
   }#end if
-  
+
   #if a is not 1, ie >1, then add together rpolyagamma sample a times
   if (a!=1){
     x= 0; #assign x
@@ -153,13 +153,13 @@ rpolyagamma = function(a,z,t){
     #return x
     return (x);
   }#end if
-  
+
   #else a is 1
   else{
     z = abs(z)/2;
     mu = 1/z;
     K = pi*pi/8+z*z/2;
-    
+
     #calculate mixture coefficient
     p = pi/(2*K)*exp(-K*t);
     q = 2*exp(-z)*pinversen(t,mu,lambda=1);
@@ -168,14 +168,14 @@ rpolyagamma = function(a,z,t){
     if (!is.finite(r)){
       stop("Mixture coefficients are not finite in rpolyagamma");
     }#end if
-    
+
     #put in global REJECTION count
     REJECTION <<- 0;
-    
+
     #accept-reject sample, repeat until accept
     repeat{
       #sample x from mixture model
-      
+
       #probability p/(p+q), sample truncated exp
       if(runif(1)<r){
         x = t+rexp(1)/K;
@@ -184,7 +184,7 @@ rpolyagamma = function(a,z,t){
       else{
         x = rinversen(mu,t);
       }#end else
-      
+
       #get 0th coefficient
       S = a_n(x,0,t);
       y = runif(1)*S;
@@ -252,12 +252,12 @@ rejectionPolyaGamma = function(b_exp_array,n){
       rejection_matrix[i,j] = REJECTION;
     }#end for
   }#end for
-  
+
   #plot the training and testing error
   boxplot(rejection_matrix,names=paste("10E",sapply(b_exp_array,toString),sep=""),xlab="b",ylab="Number of rejection");
   mean = colMeans(rejection_matrix);
   errbar(b_exp_array,mean,apply(rejection_matrix,2,min),apply(rejection_matrix,2,max));
-  
+
 }#end rejectionPolyaGamma
 
 # Generate parameter vector beta from a multivariate normal
@@ -272,7 +272,7 @@ generate_mv_normal = function(w, y, X, b, Binv){
   return(beta)
 }
 
-# Check whether the user has provided arguments 
+# Check whether the user has provided arguments
 # with matching dimensionalities
 check_dimensions = function(y, X, b, B){
   if(!is.vector(y)) stop("y must be a vector")
@@ -283,12 +283,19 @@ check_dimensions = function(y, X, b, B){
   if(length(b) != ncol(X)) stop("ncol(X) must equal length(b)")
 }
 
-# Gibbs two-step sampling procedure 
-# for parameter vector beta and the latent Polya-Gamma variables
+#' Gibbs two-step sampling procedure
+#' for parameter vector beta and the latent Polya-Gamma variables
+#'
+#' @param y binary vector of observations
+#' @param X design matrix of covariates
+#' @param lambda
+#'
+#' @return list containing the MCMC samples from the posterior distribution of beta
+
 gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
-  
+
   # number of parameters
   m = ncol(X)
   # number of data points
@@ -296,11 +303,11 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
   # Starting values for beta; initialise w
   beta = b
   w = rep(NA, n)
-  
+
   # Store the values of all betas and all w
   beta_all = matrix(0, n_iter, m)
   w_all = matrix(0, n_iter, n)
-  
+
   for(k in 1:n_iter){
     # draw elements of w from PG
     for(i in 1:n){
@@ -325,27 +332,27 @@ print.PG = function(obj){
   s = "
   MCMC sample from the posterior distribution of beta.
   Chain length: %d.
-  Number of parameters: %d. 
-  Posterior means: %s. 
+  Number of parameters: %d.
+  Posterior means: %s.
   Posterior standard deviations: %s.
   "
-  cat(sprintf(s, 
-              nrow(beta), 
-              ncol(beta), 
-              paste(posterior_mean, collapse=", "), 
+  cat(sprintf(s,
+              nrow(beta),
+              ncol(beta),
+              paste(posterior_mean, collapse=", "),
               paste(posterior_sd, collapse=", ")))
 }
 
 # plot method for PG object
 plot.PG = function(obj){
   X = obj$beta
-  
+
   layout_mat = create_layout_matrix(ncol(X))
   layout(layout_mat)
   for(j in 1:ncol(X)){
     x = X[, j]
     # traceplot
-    plot(x, type="l"); abline(h = mean(x), lty=2, col="red")
+    plot(x, type="l")
     # autocorrelation plot
     acf(x, main="")
   }

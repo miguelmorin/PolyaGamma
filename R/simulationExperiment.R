@@ -8,6 +8,6 @@ generate_from_simple_logistic_model = function(n = 1000){
   return(list(X=X, y=y))
 }
 
-data = generate_from_simple_logistic_model(1000)
-obj = gibbs_sampler(data$y, data$X, b=rep(0, 2), B=10*diag(2), 500)
-plot(obj)
+# data = generate_from_simple_logistic_model(1000)
+# obj = gibbs_sampler(data$y, data$X, b=rep(0, 2), B=10*diag(2), 500)
+# plot(obj)
