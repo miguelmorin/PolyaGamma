@@ -256,7 +256,7 @@ check_dimensions = function(y, X, b, B){
 
 # Gibbs two-step sampling procedure 
 # for parameter vector beta and the latent Polya-Gamma variables
-gibbs_sampler = function(y, X, lambda = 100, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
+gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
   
