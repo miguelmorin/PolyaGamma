@@ -12,7 +12,15 @@ saheart = function(){
   data = data[c("sbp","tobacco","ldl","famhist","alcohol","age")];
   data$famhist = (data$famhist=="Present");
   X = as.matrix(data);
-  classifierExperiment(X,y);
+  classifierExperiment(X,y,seq(-3,4));
+}
+
+
+spambase = function(){
+  data = read.table("spambase.data",sep=",",head=FALSE);
+  y = data[,58];
+  X = data[,-58];
+  classifierExperiment(X,y,seq(-3,1));
 }
 
 #TRANSFUSION
@@ -25,7 +33,7 @@ transfusion = function(){
 
 
 #EXPERIMENT FUNCTION
-classifierExperiment = function(X,y){
+classifierExperiment = function(X,y,lambda_exp_vector){
   #set random seed
   set.seed(92486);
   
@@ -66,25 +74,22 @@ classifierExperiment = function(X,y){
   logistic_train_error = getTestError(y_train, predict(X_train, beta_logistic));
   logistic_test_error = getTestError(y_test, predict(X_test, beta_logistic));
   
-  #get range of lambda to investigate
-  lambda_exp_vector = seq(3,10);
-  
   n_error = 5; #number of times to repeat the experiment
-  n_samples = 100; #number of betas to sample from the chain
-  n_chain = 150; #the length of the chain
+  n_samples = 400; #number of betas to sample from the chain
+  n_chain = 500; #the length of the chain
   
   #create matrix to stroe training and testing error
   test_error = matrix(0,ncol=length(lambda_exp_vector),nrow=n_error);
   train_error = test_error;
   
   #for every lambda
-  for (i in 1:length(lambda_exp_vector)){
+  for (i in seq_len(length(lambda_exp_vector))){
     #get lambda
-    lambda = lambda_exp_vector[i];
+    lambda = 10^(lambda_exp_vector[i]);
     #repeat n_error times
     for (j in 1:n_error){
       #get a chain
-      chain = gibbs_sampler(y_train, X_train, b = replicate(p,0), B = diag(replicate(p,lambda)),n_chain, naive=TRUE)$beta;
+      chain = gibbs_sampler(y_train, X_train, lambda = lambda, n_iter=n_chain)$beta;
       #take the last part of the chain
       beta_posterior = chain[(n_chain-n_samples+1):n_chain,];
       #average the logistic regression, round it and use it for prediction
@@ -95,9 +100,9 @@ classifierExperiment = function(X,y){
   
   #plot the training and testing error
   par(mfrow=c(1,2));
-  boxplot(train_error,names=paste("10E",sapply(lambda_exp_vector,toString),sep=""),xlab="Prior variance",ylab="Training error");
+  boxplot(train_error,names=paste("10E",sapply(lambda_exp_vector,toString),sep=""),xlab="Prior precision",ylab="Training error");
   abline(logistic_train_error,0,col="red")
-  boxplot(test_error,names=paste("10E",sapply(lambda_exp_vector,toString),sep=""),xlab="Prior variance",ylab="Testing error");
+  boxplot(test_error,names=paste("10E",sapply(lambda_exp_vector,toString),sep=""),xlab="Prior precision",ylab="Testing error");
   abline(logistic_test_error,0,col="red");
 }#end classifierExperiment
 
