@@ -65,8 +65,8 @@ classifierExperiment = function(X,y,lambda_exp_vector){
   X_test = cbind(1,X_test);
 
   #get error of logistic regression
-  logistic_train_error = getTestError(y_train, predict(X_train, beta_logistic));
-  logistic_test_error = getTestError(y_test, predict(X_test, beta_logistic));
+  logistic_train_error = getTestError(y_train, get_predictions(X_train, beta_logistic));
+  logistic_test_error = getTestError(y_test, get_predictions(X_test, beta_logistic));
 
   n_error = 5; #number of times to repeat the experiment
   n_samples = 400; #number of betas to sample from the chain
@@ -87,8 +87,8 @@ classifierExperiment = function(X,y,lambda_exp_vector){
       #take the last part of the chain
       beta_posterior = chain[(n_chain-n_samples+1):n_chain,];
       #average the logistic regression, round it and use it for prediction
-      train_error[j,i] = getTestError(y_train, predict(X_train, beta_posterior));
-      test_error[j,i] = getTestError(y_test, predict(X_test, beta_posterior));
+      train_error[j,i] = getTestError(y_train, get_predictions(X_train, beta_posterior));
+      test_error[j,i] = getTestError(y_test, get_predictions(X_test, beta_posterior));
     }#end for
   }#end for
 
@@ -120,25 +120,3 @@ getTestError = function(y,yHat){
 }#end getTestError
 
 
-#FUNCTION: return the logistic regression for multiple betas
-#PARAMETERS: X and beta_design are design matrices
-logisticRegression = function(X,beta_design){
-  #check if X and beta_design are matrices
-  if ( (!(is.matrix(X)|is.vector(X))) | (!(is.matrix(beta_design)|is.vector(beta_design))) ){
-    stop("Parameters in logisticRegression are not of the correct type");
-  }#end if
-  #get a matrix of etas
-  eta = beta_design %*% t(X);
-  #return logistic regression
-  p = 1/(1+exp(-eta));
-  return(p);
-}#end logisticRegression
-
-# Predict the y value for all data points,
-# given a design matrix X and the sample from posterior of betas
-predict = function(X, beta){
-  samples = logisticRegression(X, beta)
-  posterior_mean = colMeans(samples)
-  ypred = round(posterior_mean)
-  return(ypred)
-}

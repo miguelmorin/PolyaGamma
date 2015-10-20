@@ -346,7 +346,9 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
   return(out)
 }
 
-# print method for PG object
+#' Print a summary of the chains
+#'
+#' @export
 print.PG = function(obj){
   beta = obj$beta
   posterior_mean = round(colMeans(beta), 3)
@@ -365,9 +367,13 @@ print.PG = function(obj){
               paste(posterior_sd, collapse=", ")))
 }
 
-# plot method for PG object
-plot.PG = function(obj){
-  X = obj$beta
+
+#' Traceplot and autocorrelation plot for the beta chain
+#' @param which_parameters Vector of indexes which components of beta vector should be plotted.
+#'
+#' @export
+plot.PG = function(obj, which_parameters = 1:ncol(obj$beta)){
+  X = obj$beta[, which_parameters]
 
   layout_mat = create_layout_matrix(ncol(X))
   layout(layout_mat)

@@ -1,6 +1,7 @@
 logistic = function(x)1/(1+exp(-x))
 
-# Simulate data from a simple model
+#' Simulate data from a simple logistic model
+#' @export
 generate_from_simple_logistic_model = function(n = 1000){
   x = rnorm(n)
   X = cbind(1, x)
