@@ -71,6 +71,7 @@ classifierExperiment = function(X,y,lambda_exp_vector){
   n_error = 5; #number of times to repeat the experiment
   n_samples = 400; #number of betas to sample from the chain
   n_chain = 500; #the length of the chain
+  burn_in = n_chain - n_chain
 
   #create matrix to stroe training and testing error
   test_error = matrix(0,ncol=length(lambda_exp_vector),nrow=n_error);
@@ -83,9 +84,9 @@ classifierExperiment = function(X,y,lambda_exp_vector){
     #repeat n_error times
     for (j in 1:n_error){
       #get a chain
-      chain = gibbs_sampler(y_train, X_train, lambda = lambda, n_iter=n_chain)$beta;
+      obj = gibbs_sampler(y_train, X_train, lambda = lambda, n_iter_total=n_chain, burn_in=burn_in);
       #take the last part of the chain
-      beta_posterior = chain[(n_chain-n_samples+1):n_chain,];
+      beta_posterior = obj$beta
       #average the logistic regression, round it and use it for prediction
       train_error[j,i] = getTestError(y_train, get_predictions(X_train, beta_posterior));
       test_error[j,i] = getTestError(y_test, get_predictions(X_test, beta_posterior));
