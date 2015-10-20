@@ -215,26 +215,43 @@ rpolyagamma = function(a,z,t){
 }#end rpolyagamma
 
 #PLOT FUNCTION
-#plot the histogram and curve of samples and pdf of polya gamma
+#plot the histogram and curve of samples and pdf of polya gamma used for the report
 plotHistogramPolyaGamma = function(){
-  par(mfrow=c(2,2));
+  par(mfrow=c(2,3));
   testpolyagamma(0.1,0.64);
   testpolyagamma(1,0.64);
   testpolyagamma(10,0.64);
-  testpolyagamma(100,0.64);
-}
+  testpolyagammanaive(10,2);
+  testpolyagammanaive(10,10);
+  testpolyagammanaive(10,100);
+}#end plotHistogramPolyaGamma
 
 #DEBUG FUNCTION: plot histogram and pdf of PG(1,z) with truncation t
 #AUTHOR: SHERMAN IP
 #DATE: 16/10/15
 testpolyagamma = function(z,t){
   x = replicate(10000,rpolyagamma(1,z,t));
+
   #Observeable: the pdf can't be evaluated for mu<0.0029
   x_plot = seq(from=min(x),to=max(x),length=1000);
   f_plot = sapply(x_plot,dpolyagamma,z=z,t=t);
-  hist(x,freq=FALSE,main=paste("z =",toString(z)),xlim=c(0,max(x)), ylim=c(0, max(f_plot)*1.01));
+  hist(x,freq=FALSE,main=paste("Proposed PG(1,",toString(z),") sampler",sep=""),xlim=c(0,max(x)), ylim=c(0, max(f_plot)*1.2),breaks=20);
   lines(x_plot,f_plot);
 }#end testinversen
+
+
+#DEBUG FUNCTION: plot histogram and pdf of PG(1,z) using the naive sampler
+#AUTHOR: SHERMAN IP
+#DATE 20/10/15
+testpolyagammanaive = function(z,n){
+  x = replicate(10000,rpolyagamma_naive(z,n_terms = n));
+  #Observeable: the pdf can't be evaluated for mu<0.0029
+  x_plot = seq(from=min(x),to=max(x),length=1000);
+  f_plot = sapply(x_plot,dpolyagamma,z=z,t=t);
+  hist(x,freq=FALSE,main=paste("Naive PG(1,",toString(z),") sampler with ",toString(n)," term(s)",sep=""),xlim=c(0,max(x)),ylim=c(0, max(f_plot)*1.2),breaks=20);
+  lines(x_plot,f_plot);
+}#end testinversen
+
 
 #DEBUG FUNCTION: pdf of PG(1,z) at x and truncation point t
 #AUTHOR: SHERMAN IP
