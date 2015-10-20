@@ -327,11 +327,11 @@ check_dimensions = function(y, X, b, B){
 #' @return list containing the MCMC samples from the posterior distribution of beta
 #' @examples
 #' data = generate_from_simple_logistic_model(n=100)
-#' obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter=100)
+#' obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter_total=100, burn_in=50)
 #' plot(obj)
 #' @export gibbs_sampler
 #'
-gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
+gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag(ncol(X)), n_iter_total = 200, burn_in = 100, naive = FALSE, naive_n_terms = 100, t = 0.64){
   # Check if everything is OK with dimensions
   check_dimensions(y, X, b, B)
 
@@ -344,10 +344,10 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
   w = rep(NA, n)
 
   # Store the values of all betas and all w
-  beta_all = matrix(0, n_iter, m)
-  w_all = matrix(0, n_iter, n)
+  beta_all = matrix(0, n_iter_total, m)
+  w_all = matrix(0, n_iter_total, n)
 
-  for(k in 1:n_iter){
+  for(k in 1:n_iter_total){
     # draw elements of w from PG
     for(i in 1:n){
       psi = as.numeric(X[i, ] %*% beta)
@@ -358,7 +358,8 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
     beta_all[k, ] = beta
     w_all[k, ] = w
   }
-  out = list("beta" = beta_all, "w" = w_all)
+  selected_ind = (burn_in+1):n_iter_total
+  out = list("beta" = beta_all[selected_ind, ], "w" = w_all[selected_ind, ], "burn_in" = burn_in)
   class(out) = "PG"
   return(out)
 }
@@ -372,13 +373,14 @@ print.PG = function(obj){
   posterior_sd = round(apply(beta, 2, sd), 3)
   s = "
   MCMC sample from the posterior distribution of beta.
-  Chain length: %d.
+  Chain length: %d (with %d burn-in removed).
   Number of parameters: %d.
   Posterior means: %s.
   Posterior standard deviations: %s.
   "
   cat(sprintf(s,
               nrow(beta),
+              obj$burn_in,
               ncol(beta),
               paste(posterior_mean, collapse=", "),
               paste(posterior_sd, collapse=", ")))
@@ -390,7 +392,7 @@ print.PG = function(obj){
 #'
 #' @export
 plot.PG = function(obj, which_parameters = 1:ncol(obj$beta)){
-  X = obj$beta[, which_parameters]
+  X = obj$beta[, which_parameters, drop=FALSE]
 
   layout_mat = create_layout_matrix(ncol(X))
   layout(layout_mat)
