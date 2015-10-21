@@ -56,7 +56,7 @@ y_i \sim \Be\left( \frac{1}{1 + \exp(-x_i^T \boldbeta)} \right)
 and we have specified a prior distribution for the parameter vector with a prior distribution $\boldbeta \sim N(b, B)$.
 
 In this report, we consider the prior distribution to have zero mean and a diagonal variance-covariance matrix, i.e. to be
-\begin{equation}
+\begin{equation} \label{eq:prior}
 \boldbeta \sim \textup{N}\left(0,\dfrac{1}{\lambda} \mathbf{I} \right )
 \end{equation}
 where $\lambda$ is the prior precision and can be treated as a tuning parameter. The smaller $\lambda$ is, the less informative the prior is.
@@ -65,7 +65,7 @@ where $\lambda$ is the prior precision and can be treated as a tuning parameter.
 \centering
 \includegraphics[width=0.8\textwidth]{prior_and_posterior}
 %SHERMAN: Added "maximum likelihood estimator" "origin"
-\caption{Illustration of the Bayesian logistic regression: the prior distribution (black), maximum likelihood estimator (blue), and posterior (red) shown by density plots in two different scenarios (a) and (b). Fixing $\beta_1=1$ and $\beta_2=1$, 100 data points were generated from the Bernoulli distribution with success probability $1/(1+\exp(-(\beta_1 x_1 + \beta_2 x_2)))$. The prior distribution is chosen as defined above with (a) $\lambda=0.01$ and (b) $\lambda=1$.}
+\caption{Illustration of the Bayesian logistic regression: the prior distribution (black), maximum likelihood estimator (blue), and posterior (red) shown by density plots in two different scenarios (a) and (b). Fixing $\beta_1=1$ and $\beta_2=1$, 100 data points were generated from the Bernoulli distribution with success probability $1/(1+\exp(-(\beta_1 x_1 + \beta_2 x_2)))$. The prior distribution is chosen as defined above in \eqref{eq:prior} with (a) $\lambda=0.01$ and (b) $\lambda=1$.}
 \label{fig:prior_and_posterior}
 \end{figure}
 
@@ -219,7 +219,7 @@ Next, we verified that for increasing sample size $N$, the posterior distributio
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{posterior_and_mse}
-\caption{Samples from the posterior distribution of the parameter, comparing our implementation (red) and the BayesLogit package (blue), for a vague prior (a) $\lambda=0.01$ and a strong one (b) $\lambda=10$.}
+\caption{Samples from the posterior distribution of the parameter (true value $\beta_1=1$), comparing our implementation (red) and the BayesLogit package (blue), for a vague prior (a) $\lambda=0.01$ and an informative one (b) $\lambda=10$. By increasing the number of data points (sample size, x-axis), the posterior distribution of $\beta_1$ becomes closer to its true value, and for all sample sizes the posterior mean is reasonably close to it. Mean squared errors (MSE, y-axis) are shown in the bottom panel. As expected, with a strong prior in (b) a larger number of observations is needed to converge towards the true value of the parameter.}
 \label{fig:posterior_and_mse}
 \end{figure}
 
