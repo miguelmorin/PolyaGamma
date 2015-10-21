@@ -50,3 +50,94 @@ if(FALSE){
 
   grid.arrange(p1, p2, ncol=2)
 }
+
+# Plot with boxplots comparing our implementation and the BayesLogit package,
+# together with MSE
+
+if(FALSE){
+  data = generate_from_simple_logistic_model(n=2000)
+
+  library(BayesLogit)
+  library(ggplot2)
+  library(reshape2)
+  library(dplyr)
+  library(gridExtra)
+
+  simulation_experiment = function(n_values, n_iter = 1000, lambda=100){
+    m = length(n_values)
+    mse = function(x, y)(mean((x - y)**2))
+
+    chains1 = matrix(NA, n_iter, m)
+    chains2 = matrix(NA, n_iter, m)
+
+    set.seed(1)
+    for(i in 1:m){
+      ind = sample(1:length(data$y), n_values[i])
+      obj_bayeslogit = logit(data$y[ind], data$X[ind, ], P0 = lambda*diag(2), samp=n_iter, burn=100)
+      obj = gibbs_sampler(data$y[ind], data$X[ind, ], lambda=lambda, n_iter_total=n_iter+100, burn_in=100)
+      chain1 = obj$beta[,2]
+      chain2 = obj_bayeslogit$beta[,2]
+
+
+      chains1[, i] = chain1
+      chains2[, i] = chain2
+    }
+    colnames(chains1) = n_values
+    colnames(chains2) = n_values
+    chains1 = as.data.frame(chains1) %>%
+      mutate(type="our") %>%
+      melt()
+    chains2 = as.data.frame(chains2) %>%
+      mutate(type="BayesLogit") %>%
+      melt()
+    df = rbind(chains1, chains2)
+
+    return(df)
+  }
+
+  n_values = c(100, 250, 500, 1000, 1500, 2000)
+  df1 = simulation_experiment(n_values, n_iter = 1000, lambda = 0.01)
+  df2 = simulation_experiment(n_values, n_iter = 1000, lambda = 10)
+
+  dfmse1 = df1 %>%
+    group_by(type, variable) %>%
+    summarise(mse = mse(value, 1))
+
+  dfmse2 = df2 %>%
+    group_by(type, variable) %>%
+    summarise(mse = mse(value, 1))
+
+  p1 = ggplot(df1) +
+    geom_boxplot(aes(variable, value, fill=type)) +
+    geom_hline(yintercept=1, linetype="dashed")+
+    theme_classic() +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set1") +
+    xlab("sample size") + ylab(expression(beta[1]))
+
+  p2 = ggplot(df2) +
+    geom_boxplot(aes(variable, value, fill=type)) +
+    geom_hline(yintercept=1, linetype="dashed")+
+    theme_classic() +
+    theme(legend.position="none") +
+    scale_fill_brewer(palette="Set1") +
+    xlab("sample size") + ylab(expression(beta[1]))
+
+
+  p3 = ggplot(dfmse1) +
+    geom_line(aes(variable, mse, col=type, group=type)) +
+    theme_classic() + ylab("MSE") +
+    theme(legend.position="none") +
+    scale_color_brewer(palette="Set1") +
+    xlab("sample size")
+
+  p4 = ggplot(dfmse2) +
+    geom_line(aes(variable, mse, col=type, group=type)) +
+    theme_classic() + ylab("MSE") +
+    theme(legend.position="none") +
+    scale_color_brewer(palette="Set1") +
+    xlab("sample size")
+
+  grid.arrange(p1, p2, p3, p4, layout_matrix = cbind(c(1, 1, 3), c(2, 2, 4)))
+
+}
