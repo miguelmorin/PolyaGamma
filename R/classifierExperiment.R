@@ -22,7 +22,7 @@ spambase = function(){
   data = read.table("spambase.data",sep=",",head=FALSE);
   y = data[,58];
   X = data[,-58];
-  classifierExperiment(X,y,seq(-5,-1));
+  classifierExperiment(X,y,seq(-5,1));
 }
 
 #EXPERIMENT FUNCTION
