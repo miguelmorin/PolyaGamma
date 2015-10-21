@@ -271,7 +271,7 @@ We applied both the naive sampler and the proposed sampler to the real data sets
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\textwidth]{naive_sampler}
-\caption{Naive Polya-Gamma sampler may produce a chain which converges to widely different values. Traceplot for the first 500 iterations for parameter $\beta_6$ from the spambase data, using either the proposed sampler (left) or the naive one (right). }
+\caption{Naive Polya-Gamma sampler may produce a chain which converges to widely different values, and is therefore unreliable. Traceplot for the first 500 iterations for parameter $\beta_6$ from the spambase data, using either the proposed sampler (left) or the naive one (right). }
 \label{fig:naive_convergence}
 \end{figure}
 
