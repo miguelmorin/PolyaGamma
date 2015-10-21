@@ -347,6 +347,9 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
   beta_all = matrix(0, n_iter_total, m)
   w_all = matrix(0, n_iter_total, n)
 
+  # initialise progressbar
+  pb = txtProgressBar(min = 0, max = n_iter_total, initial = 0)
+
   for(k in 1:n_iter_total){
     # draw elements of w from PG
     for(i in 1:n){
@@ -357,14 +360,16 @@ gibbs_sampler = function(y, X, lambda = 0.0001, b=rep(0, ncol(X)), B=lambda*diag
     beta = generate_mv_normal(w, y, X, b, B)
     beta_all[k, ] = beta
     w_all[k, ] = w
+    if(k%%50==0) setTxtProgressBar(pb, k)
   }
+  close(pb)
   selected_ind = (burn_in+1):n_iter_total
   out = list("beta" = beta_all[selected_ind, ], "w" = w_all[selected_ind, ], "burn_in" = burn_in)
   class(out) = "PG"
   return(out)
 }
 
-#' Print a summary of the chains
+#' Print a summary of the MCMC chains
 #'
 #' @export
 print.PG = function(obj){

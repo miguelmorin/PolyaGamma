@@ -6,8 +6,8 @@
 for parameter vector beta and the latent Polya-Gamma variables}
 \usage{
 gibbs_sampler(y, X, lambda = 1e-04, b = rep(0, ncol(X)), B = lambda *
-  diag(ncol(X)), n_iter = 100, naive = FALSE, naive_n_terms = 100,
-  t = 0.64)
+  diag(ncol(X)), n_iter_total = 200, burn_in = 100, naive = FALSE,
+  naive_n_terms = 100, t = 0.64)
 }
 \arguments{
 \item{y}{binary vector of observations}
@@ -20,13 +20,13 @@ gibbs_sampler(y, X, lambda = 1e-04, b = rep(0, ncol(X)), B = lambda *
 
 \item{B}{The prior precision of the prior distribution. Defaults to lambda * identity.}
 
-\item{n_iter}{The total number of iterations in the MCMC chain}
-
 \item{naive}{Should the naive approximation be used to generate the Polya-Gamma distribution}
 
 \item{naive_n_terms}{If the naive approximation is used, then this specifies number of terms in the finite sum.}
 
 \item{t}{The parameter in the accept-reject algorithm for sampling from Polya-Gamma distribution (see paper for details).}
+
+\item{n_iter}{The total number of iterations in the MCMC chain}
 }
 \value{
 list containing the MCMC samples from the posterior distribution of beta
@@ -37,7 +37,7 @@ for parameter vector beta and the latent Polya-Gamma variables
 }
 \examples{
 data = generate_from_simple_logistic_model(n=100)
-obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter=100)
+obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter_total=100, burn_in=50)
 plot(obj)
 }
 
