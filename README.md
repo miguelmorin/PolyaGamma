@@ -8,3 +8,17 @@ This package can be installed as follows:
 ```R
 devtools::install_github("kasparmartens/PolyaGamma")
 ```
+
+A small example, how to use the main function `gibbs_sampler`
+
+```R
+# load library
+library(PolyaGamma)
+# generate data from the logistic model 1 / (1 + exp(-(1 + x)))
+data = generate_from_simple_logistic_model(n=100)
+# obtain a sample from the posterior distribution of beta
+obj = gibbs_sampler(data$y, data$X, lambda=0.001, n_iter_total=200, burn_in=50)
+obj
+plot(obj)
+
+```
